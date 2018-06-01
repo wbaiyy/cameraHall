@@ -1,0 +1,316 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<title>有一佳照相馆 - 预约单管理</title>
+<link href="../Public/images/skin.css" rel="stylesheet" type="text/css" />
+<link href="../Public/css/17joys.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+<!--
+.icon-new {
+background-image:url(../Public/images/toolbar/icon-new.png);
+}
+.icon-edit {
+background-image:url(../Public/images/toolbar/icon-edit.png);
+}
+.icon-delete {
+background-image:url(../Public/images/toolbar/icon-delete.png);
+}
+.icon-help {
+background-image:url(../Public/images/toolbar/icon-help.png);
+}
+-->
+</style>
+</head>
+<body>
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="17" valign="top" background="../Public/images/mail_leftbg.gif"><img src="../Public/images/left-top-right.gif" width="17" height="29" /></td>
+    <td valign="top" background="../Public/images/content-bg.gif"><table width="100%" height="31" border="0" cellpadding="0" cellspacing="0" class="left_topbg" id="table2">
+      <tr>
+        <td height="31"><div class="titlebt">预约单管理</div></td>
+      </tr>
+    </table></td>
+    <td width="16" valign="top" background="../Public/images/mail_rightbg.gif"><img src="../Public/images/nav-right-bg.gif" width="16" height="29" /></td>
+  </tr>
+  <tr>
+    <td valign="middle" background="../Public/images/mail_leftbg.gif">&nbsp;</td>
+    <td valign="top" bgcolor="#F7F8F9">
+    <table class="toolbar" width="100%">
+    	<tr>
+    		<td width="86%" class="search">
+	    		<form action="__URL__/index" method="post">
+					筛选：
+					<select name="ftype">
+					<option value="YuyueOrders.order_id" <if condition="$ftype eq 'YuyueOrders.order_id'">selected='selected'</if> >订单ID</option>
+					<option value="Article.title" <if condition="$ftype eq 'Article.title'">selected='selected'</if>>产品</option>
+					<option value="Store.name" <if condition="$ftype eq 'Store.name'">selected='selected'</if>>门店</option>
+					<option value="YuyueOrders.name" <if condition="$ftype eq 'YuyueOrders.name'">selected='selected'</if>>名字</option>
+					<option value="YuyueOrders.tel" <if condition="$ftype eq 'YuyueOrders.tel'">selected='selected'</if>>手机</option>
+					</select>
+					<input type="text" name="keyword"  value="{$keyword}"/>
+					 开始时间：
+					<input class="Wdate" type="text" onClick="WdatePicker()" name="startdate" value="{$startdate}">
+					 结束时间：	
+					<input class="Wdate" type="text" onClick="WdatePicker()" name="enddate" value="{$enddate}">
+					
+					<input type="submit" value="查询" />
+					<input type="reset" value="清空" />
+			    </form>
+		      	<script>
+
+		      		function del(){
+		          		if(window.confirm('请确认是否删除？')){
+		          			document.adminForm.submit();
+		          		}
+		      		}
+		      		
+		      		function refresh(){
+		      			location.reload() 
+		      		}
+		      	</script>
+    		</td>
+      		<td>
+      		<a href="#" onclick="explo();"><span class="icon-new" style="background:"></span>导出</a>
+      		</td>
+      		<td>
+      		<a href="#" onclick="del();"><span class="icon-delete"></span>删除</a>
+      		</td>
+      		<td>
+      		<a href="javascript:void(0);" onclick="refresh();"><span class="icon-help"></span>刷新</a>
+      		</td>
+      	</tr>
+      </table>
+    
+    
+    <table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">
+      <tr>
+        <td colspan="2" valign="top">&nbsp;</td>
+        <td>&nbsp;</td>
+        <td valign="top">
+        <form name="adminForm" action="__URL__/delete" method="post">
+        <table class="adminlist" cellpadding="1">
+        <thead>
+      		<tr>
+      <th>序号</th>
+      <th style="width:1%;"><input type="checkbox" name="all" onclick="check_all(this,'c')" /></th>
+			<th style="width:5%;">订单ID</th>
+			<th style="width:5%;">产品</th>
+			<th style="width:5%;">总价</th>
+			<th style="width:5%;">定金</th>
+			<th style="width:7%;">门店</th>
+			<th style="width:5%;">预约日期</th>
+			<th style="width:5%;">预约时间</th>
+			<th style="width:5%;">名字</th>
+			<th style="width:5%">手机</th>
+			<th style="width:5%">性别</th>
+			<th style="width:5%">邮箱</th>
+			<th style="width:15%">备注信息</th>
+			<th style="width:10%">创建时间</th>
+			<th style="width:5%">订单状态</th>
+      <th style="width:5%">预约核实</th>
+      		</tr>
+      	</thead>
+      	<tbody>
+      		<volist name="alist" id="article" key="k">
+      		<tr>
+          <td>
+            {$k}
+          </td>
+      		<td>
+      		<input type="checkbox" name="did[{$k}]"  value="{$article['id']}" class="checkboxid" />
+      		</td>
+      		<td>
+      		<a href="__URL__/edit/id/{$article['id']}">
+      			{$article.order_id}	
+      		</a>
+      		</td>
+      		<td align="center">
+      		{$article['title']}
+      		</td>
+      		<td>
+      		{$article['price']}
+      		</td>
+      		<td>
+      		{$article['pay_price']}
+      		</td>				
+      		<td>
+      		{$article['store_name']}
+      		</td>
+      		<td>
+      		{$article['yuyue_date']}
+      		</td>	
+      		
+      		<td>
+      		{$article['time_point']}
+      		</td>	
+      		
+      		<td>
+      		{$article['name']}
+      		</td>	
+      		
+      		<td>
+      		{$article['tel']}
+      		</td>	
+      		<td>
+      		{$article['gender']}
+      		</td>	
+      		<td>
+      		{$article['email']}
+      		</td>
+      		<td>
+      		{$article['note']}
+      		</td>
+      		<td>
+      		{$article['createtime']}
+      		</td>
+      		<td>
+      			<if condition="$article.status eq '0'">
+      			 <span style="color:#208fd0">待支付</span>
+      			<elseif condition="$article.status eq '-1'" />
+      			 <span style="color:#afa9a9">已取消</span>
+      			<elseif condition="$article.status eq '1'" />
+      			 <span style="color:#6bb95d ">已付款</span>
+				<elseif condition="$article.status eq '-2'" />
+				 <span style="color:#afa9a9 ">已退款</span>
+			    <elseif condition="$article.status eq '2'" />
+				 <span style="color:red ">*不足24h</span>
+      			<else/>
+      			
+      			</if>
+      		</td>	
+
+      		  <td>
+            <if condition="$article.state eq '0'">
+            <a style="color:#208fd0" class="c" id="{$article['id']}" name="{$article['id']}" href="javascript:void(0)" onclick="document.getElementById('light').style.display='block';document.getElementById('fade').style.display='block'">未核实</a>
+            <!-- <a href="javascript:void(0)" onclick="document.getElementById('light').style.display='block';document.getElementById('fade').style.display='block'">未核实</a>  -->
+            <style> 
+  .black_overlay{  display: none;  position: absolute;  top: 0%;  left: 0%;  width: 100%;  height: 100%;  background-color: ;  z-index:1001;  -moz-opacity: 0.8;  opacity:.80;  filter: alpha(opacity=80);  }  
+  .white_content {  display: none;  position: absolute;  top: 25%;  left: 38%;  width: 20%;  height: 13%;  padding: 16px;  border: 2px solid #208fd0;  background-color: white;  z-index:1002;  overflow: auto;  }  </style> 
+    <div id="light" class="white_content"> 
+
+    <div><p style="font-size:14px;color:red;">请核实用户预约的订单，确认消费即可点击确认进行核实.</p></div>
+    <div style="margin:0 39%;">
+    <a href="javascript:void(0)" onclick="document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'">取消</a>
+    <a class="bg2" href="javascript:void(0)" onclick="document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'"> 确定</a>
+    </div>
+    </div> <div id="fade" class="black_overlay"> 
+</div> 
+
+            <elseif condition="$article.state eq '1'" />
+             <span style="color:#6bb95d ">已核实</span>
+            <else/>
+            
+            </if>
+          </td> 
+      		</tr>
+      		</volist>
+      	</tbody>
+      	<tfoot>
+      	<tr>
+			<td colspan="10">
+			<del class="container">
+				<div class="pagination">
+					<div class="limit">
+					每页显示20条/共
+					{$show}
+					</div>
+				</div>
+			</del>				
+			</td>
+		</tr>
+      	</tfoot>
+      	</table>
+      	</form>
+        </td>        
+      </tr>
+    </table>
+    </td>
+    <td background="../Public/images/mail_rightbg.gif">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="bottom" background="../Public/images/mail_leftbg.gif"><img src="../Public/images/buttom_left2.gif" width="17" height="17" /></td>
+    <td background="../Public/images/buttom_bgs.gif"><img src="../Public/images/buttom_bgs.gif" width="17" height="17"></td>
+    <td valign="bottom" background="../Public/images/mail_rightbg.gif"><img src="../Public/images/buttom_right2.gif" width="16" height="17" /></td>
+  </tr> 
+</table>
+
+
+
+
+
+
+</body>
+<script src="__PUBLIC__/js/jquery-2.1.0.min.js"></script>
+<script language="javascript" type="text/javascript" src="__PUBLIC__/DatePicker/WdatePicker.js"></script>
+
+<script>
+ function submitform(obj){
+	 //alert($(obj));
+	console.log(obj.value);
+ }
+
+function explo(){
+
+  var aa = $('.checkboxid');
+  var ss = "";
+                for (var i = 0; i < aa.length; i++) {
+                    if (aa[i].checked) {
+                        ss += ','+aa[i].value;
+                    }
+                }
+                if(ss==""){
+                  alert("请选择要导出的订单");
+                }else{
+                  window.location.href="__URL__/export/id/"+ss;
+                }
+
+}
+
+function check_all(obj,cName)
+{
+     var aa = $('.checkboxid');
+    for(var i=0;i<aa.length;i++){aa[i].checked = obj.checked;}
+}
+</script>
+<script type="text/javascript">
+
+$(function(){
+        var id;
+        $(".c").click(function() {
+            id = $(this).attr('id');
+        });
+
+        $(".bg2").click(function() {
+            
+            var data ='id='+id;
+            $.ajax({
+                'url':"__URL__/upstate/",
+                'data':data,
+                'type':'post',
+                'dataType':'json',
+                'success':function(jobj){
+                    // console.log(jobj);
+                    if(jobj['status']=='-1'){
+                      alert("该订单已核实");
+
+                    }else if(jobj['status']=='1'){
+                        document.getElementById(id).innerHTML = "已核实";
+                        document.getElementById(id).style.color = '#6bb95d';
+
+                    }else if(jobj['status']=='-2'){
+                      alert("该订单用户暂未付款");
+                    }else if(jobj['status']=='-3'){
+                      alert("该订单已取消");
+                    }else{
+                        document.getElementById(id).innerHTML = "未核实";
+                        document.getElementById(id).style.color = '#6bb95d';
+                    }
+                }
+            });
+        });
+
+
+    });
+
+</script>

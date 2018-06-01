@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>有一佳照相馆后台管理</title>
+        
+        <style>
+			body {
+				font-family: Tahoma,Arial,Verdana;
+				font-size: 12px;
+				color: black;
+			}
+			
+			a:link {color: #84c4e2;}
+			a:visited {color:#84c4e2;}
+			a:hover {color: #cd82ad;}
+			a:active {color: #84c4e2;}
+			
+			/* latin */
+			@font-face {
+			  font-family: 'Covered By Your Grace';
+			  font-style: normal;
+			  font-weight: 400;
+			  src: local('Covered By Your Grace'), local('CoveredByYourGrace'), url(http://fonts.gstatic.com/s/coveredbyyourgrace/v6/6ozZp4BPlrbDRWPe3EBGAxIQb9tn0GTKNjAuszxKf4A.woff2) format('woff2');
+			  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+			}
+		</style>
+        <script src="__PUBLIC__/amcharts/amcharts.js" type="text/javascript"></script>
+        <script src="__PUBLIC__/amcharts/serial.js" type="text/javascript"></script>
+        <script src="__PUBLIC__/amcharts/pie.js" type="text/javascript"></script>
+        <!-- theme files. you only need to include the theme you use.
+             feel free to modify themes and create your own themes -->
+        <script src="__PUBLIC__/amcharts/themes/light.js" type="text/javascript"></script>
+        <script src="__PUBLIC__/amcharts/themes/dark.js" type="text/javascript"></script>
+        <script src="__PUBLIC__/amcharts/themes/black.js" type="text/javascript"></script>
+        <script src="__PUBLIC__/amcharts/themes/chalk.js" type="text/javascript"></script>
+        <script src="__PUBLIC__/amcharts/themes/patterns.js" type="text/javascript"></script>
+        <script language="javascript" type="text/javascript" src="__PUBLIC__/DatePicker/WdatePicker.js"></script>
+        	
+        <script>
+        // in order to set theme for a chart, all you need to include theme file
+        // located in amcharts/themes folder and set theme property for the chart.
+		var chart1;
+		var chart2;
+
+        makeCharts("light", "#FFFFFF");
+
+        // Theme can only be applied when creating chart instance - this means
+        // that if you need to change theme at run time, youhave to create whole
+        // chart object once again.
+
+        function makeCharts(theme, bgColor, bgImage) {
+
+            if (chart1) {
+                chart1.clear();
+            }
+            if (chart2) {
+                chart2.clear();
+            }
+
+            // background
+            if (document.body) {
+                document.body.style.backgroundColor = bgColor;
+                document.body.style.backgroundImage = "url(" + bgImage + ")";
+            }
+
+            // column chart
+            chart1 = AmCharts.makeChart("chartdiv1", {
+                type: "serial",
+                theme: theme,
+                dataProvider: {$notes},
+                categoryField: "mouth",
+                startDuration: 1,
+
+                categoryAxis: {
+                    gridPosition: "start"
+                },
+                valueAxes: [{
+                    title: "RMB元"
+                }],
+                graphs: [{
+                    type: "column",
+                    title: "预约金额",
+                    valueField: "income",
+                    lineAlpha: 0,
+                    fillAlphas: 0.8,
+                    balloonText: "[[title]] in [[category]]:<b>[[value]]</b>"
+                }
+                ,
+                {
+                  type: "line",
+                    title: "退款金额",
+                    valueField: "expenses",
+                    lineThickness: 2,
+                    fillAlphas: 0,
+					bullet: "round",
+                   balloonText: "[[title]] in [[category]]:<b>[[value]]</b>"
+                }
+                ],
+                legend: {
+                    useGraphSettings: true
+                }
+
+            });
+
+            // pie chart
+            chart2 = AmCharts.makeChart("chartdiv2", {
+                type: "pie",
+                theme: theme,
+                dataProvider: {$tips},
+                titleField: "store_name",
+                valueField: "price",
+                balloonText: "[[title]]<br><b>[[value]]</b> ([[percents]]%)",
+                legend: {
+                    align: "center",
+                    markerType: "circle"
+                }
+            });
+
+        }
+
+
+        </script>
+    </head>
+
+    <body style="font-size:15px;">
+    	<div style="width: 600px; height: 100px;margin-top:20px;margin-left:20px;">
+    	<span style="color:#ff494c;font-size:18px;">
+    	选择背景:
+    	</span>
+        <a href="#" onclick="makeCharts('light', '#ffffff');">明亮</a> |
+        <a href="#" onclick="makeCharts('dark', '#282828')">黑暗</a> |
+        <a href="#" onclick="makeCharts('black', '#222222')">黑色</a> |
+        <a href="#" onclick="makeCharts('patterns', '#ffffff')">条纹</a> |
+        <a href="#" onclick="makeCharts('chalk', '#282828', '__PUBLIC__/amcharts/images/board.jpg')">粉笔</a>
+      	
+      	<div style="color:#ec0000;font-size:15px;margin-top:5px;margin-bottom:5px;">订单统计：{$startdate}到{$enddate}</div>
+      	
+      	
+      	<div style="color:#ec7500;font-size:15px;margin-top:10px;">
+      			<form action="__URL__/main" method="post">
+				筛选：
+				 开始时间：
+				<input class="Wdate" type="text" onClick="WdatePicker()" name="startdate" value="{$startdate}">
+				 结束时间：	
+				<input class="Wdate" type="text" onClick="WdatePicker()" name="enddate" value="{$enddate}">
+				<input type="submit" value="查询" />
+				
+		    </form>
+       	</div>
+        </div>	
+        <div id="chartdiv1" style="width: 600px; height: 400px;float:left;margin-right:50px;"></div>
+        <div id="chartdiv2" style="width: 600px; height: 400px;float:left;"></div>
+    </body>
+
+</html>

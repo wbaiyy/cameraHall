@@ -49,7 +49,7 @@ a:focus, a:hover {
         <div class="list-group-item">
           <strong>拍摄信息</strong>
           <div><p style="color:#777777;width:30%;float:left;">拍摄日期：</p><p style="color:#e71f18;width:60%;float:left;">{$date}（周{$week}）</p></div>
-          <div><p style="color:#777777;width:30%;float:left;">拍摄时间：</p><p style="color:#e71f18;width:60%;float:left;">{$time}</p></div>
+          <div><p style="color:#777777;width:30%;float:left;">拍摄时间：</p><p style="color:#e71f18;width:60%;float:left;">{$serviceTimes}</p></div>
           <div><p style="color:#777777;width:30%;float:left;">拍摄门店：</p><p style="color:#e71f18;width:60%;float:left;">{$place.name}
           <a id="modal-171816" href="#modal-container-171816" role="button" data-toggle="modal" style="float:right;color：#B3BBC1;font-size:12px;">
           <span class="glyphicon glyphicon-map-marker"></span>门店信息
@@ -99,7 +99,7 @@ a:focus, a:hover {
           <div>
           <p class="list-group-item-text" style="width:30%;float:left;">
             <strong>服务时长</strong>
-             <p style="color:#e71f18;width:70%;float:left;">约1.5小时 <br>
+             <p style="color:#e71f18;width:70%;float:left;">约{$serviceTime}小时 <br>
              <em style="color:#777777;font-size:10px;">时长仅供参考，请预留充足的时间</em>
              </p>
           </p>

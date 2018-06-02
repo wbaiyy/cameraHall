@@ -124,6 +124,10 @@ function fnOnSubmit(form){
 		
 		<tr><td class="key">定金：<span class="red_font">*</span></td>
 		<td><input type="text" name="pay_price" value="{$udate['pay_price']}" /></td></tr>
+
+		<tr><td class="key red_font">拍摄时间：<span class="red_font">*</span></td>
+			<td><input type="text" name="time_type"  placeholder="请输入正整数"  value="{$udate['time_type']}" />
+				<span class="red_font">提示：总时间会乘以配置时间间隔（如2 * 30分钟）</span></td></tr>
 		
 		<tr><td class="key">图片：</td>
 		<td><input type="file" name="photo" value="{$udate['photo']}" /></td></tr>

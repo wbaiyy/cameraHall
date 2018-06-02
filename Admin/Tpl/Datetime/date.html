@@ -105,6 +105,29 @@ background-image:url(../Public/images/toolbar/icon-help.png);
       		</tr>
       		</volist>
       	</tbody>
+			<tr>
+				<td colspan="10">
+					<del class="container">
+						<div class="pagination">
+							<div class="limit">
+								每页显示数#
+								<select onchange="submitform(this);" size="1" class="inputbox" id="limit" name="limit">
+									<option value="5">5</option>
+									<option value="10">10</option>
+									<option value="15">15</option>
+									<option selected="selected" value="20">20</option>
+									<option value="25">25</option>
+									<option value="30">30</option>
+									<option value="50">50</option>
+									<option value="100">100</option>
+									<option value="0">所有</option>
+								</select>
+								{$show}
+							</div>
+						</div>
+					</del>
+				</td>
+			</tr>
       	<!--  tfoot>
       	<tr>
 			<td colspan="10">

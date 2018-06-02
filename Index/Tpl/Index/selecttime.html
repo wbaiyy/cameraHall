@@ -180,7 +180,7 @@ a:focus, a:hover {
                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
             </div>
             <div class="modal-body">
-              <p style="text-align:center;">你选择的档期是</p>
+                <p style="text-align:center;">你选择<sapn id="product_name"></sapn>的档期是</p>
               <P style="text-align:center;color:#208fd0;">{$date}（周{$week}）<span id="real_time">09：30</span></P>
               <p style="text-align:center;color:#208fd0;">{$place.name}</p>
               <p style="text-align:center;">是否确认？</p>
@@ -200,19 +200,37 @@ a:focus, a:hover {
 <!-- 确认预约时间 end -->
 <script>
 var tpid;
-$('.tanc').click(function(){
-		
-	tpid = $(this).attr('tpid');
-	var tp =$(this).attr('val');
-	$("#real_time").text(tp);
+
+//$gid, $date_id, $tpid
+$('.tanc').click(function() {
+
+    tpid = $(this).attr('tpid');
+    var url = "__URL__/timeJudge/gid/"+{$goods_id}+"/date_id/"+{$date_id}+"/tpid/"+tpid;
+
+    $.ajax({
+        'type': 'GET',
+        'url': url,
+        'data': '',
+        'dataType': 'json',
+        'success': function (res) {
+            if (res.code != 0) {
+                alert(res.msg);
+            } else {
+                $('#modal-container-136554').modal();
+                $("#real_time").text(res.data.date);
+                $("#product_name").text(res.data.productName);
+            }
+        }
+    });
+
+
+
 	
-	$('#modal-container-136554').modal();
-	
+
 });
 function goorder(){
 	var str = "{:U('Index/order',array('gid'=>$goods_id,'pid'=>$place_id,'tpid'=>"+tpid+"))}";
-	var str = "__URL__/order/gid/"+{$goods_id}+"/pid/"+{$place_id}+"/tpid/"+tpid;
-    //console.log(str);
+	var str = "__URL__/order/gid/"+{$goods_id}+"/pid/"+{$place_id}+"/date_id/"+{$date_id}+"/tpid/"+tpid;
 	window.location =str;
 }
 

@@ -5,73 +5,7 @@ class IndexAction extends Action {
     
     public function __construct(){
         parent::__construct();
-    
-        $this->key = 'dcd6a713d49fb4432c57f8e20a88a6b1'; 
-        
-        $this->mch_id = "1342208701";
-        $this->appid = 'wxd79f45dc2114c329';
-        //网易云信分配的账号，请替换你在管理后台应用下申请的Appkey
-        $this->AppKey = 'e573b030f1c51f5892a9d4ac41747423';
-        //网易云信分配的账号，请替换你在管理后台应用下申请的appSecret
-        $this->AppSecret = '9594ee68d5a5';
-        //微信模版消息
-        $this->template_id = '89NAdNmYO--O68Ye5WyraEu0zmMc-F1TrgPEpszH5wE';
-        
-         if(!$_SESSION['open_id']){
-             $_SESSION['open_id'] =$this->openid = $this->get_openid($this->appid,$this->key);
-         }else{
-             $this->openid = $_SESSION['open_id'];
-         }  
-         //$this->openid = 'os7D9wi5jTzRfe8PApIdL0vAnB0E';
 
-        $openids = $this->openid;
-
-        //var_dump($_GET["_URL_"][1]);exit;
-        
-        if($_GET["_URL_"][1]!="scan"){
-
-             $token = S('atoken');
-         
-             if(!$token){
-                 $token =  $this->getToken();
-                
-                 S('atoken',$token,3600,'File');
-             }     
-     ;
-            $gzxx =  S('gzxx');
-             if(!$gzxx){
-                $res  =$this->getInfo( $token ,$openids);
-                
-                if($res['errcode']=="40001"){
-
-                  $token =  $this->getToken();
-                  S('atoken',$token,3600,'File');
-                  $reUrl ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-                  Header("Location: $reUrl");  
-
-                }
-
-                if($res['errcode']=='40003'){
-                    $reUrl ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-                    if(strpos($reUrl,'code')){
-                        //$reUrl = str_replace('code','nimeicode',$reUrl);
-                        $arr = explode('?',$reUrl);
-                        Header("Location: $arr[0]");
-                        //Header("Location: $reUrl");
-                    }
-                }
-                $gzxx = $res['subscribe'];
-
-                if($gzxx!=0){
-                    S('gzxx',$gzxx,3600,'File');
-                }
-              }     
-             
-            //var_dump($token);die;
-            if($gzxx == 0){
-              $this->error('您还未关注我们！', U("Index/scan"));
-            }
-    }
 
 }
     
@@ -220,8 +154,13 @@ class IndexAction extends Action {
 
     //我的订单
     public function myorder(){
-        $order = new OrderViewModel();
-        $myorder = $order->where(array('YuyueOrders.open_id'=>$this->openid))->select();
+
+        $myorder = array();
+        if ($this->openid)  {
+            $order = new OrderViewModel();
+            $myorder = $order->where(array('YuyueOrders.open_id'=>$this->openid))->select();
+        }
+
         $this->assign('myorder',$myorder);
         $this->assign('url',U("Index/yuyue"));
         $this->display('myorder');
@@ -373,7 +312,6 @@ class IndexAction extends Action {
     }
     //
     public function order(){
-        //dump($_GET);die;
         $get = $_GET;
         if(!$get['gid']){
             
@@ -404,7 +342,7 @@ class IndexAction extends Action {
    
         if(empty($date)){
             
-            $this->error('当前日期已经被预约完了，请重选日期！',U('Index/selectdate',array('gid'=>$get['gid'],'pid'=>$get['pid'])));
+            $this->error('当前日期已经被预约完了，请重选日期！', U('Index/selectdate',array('gid'=>$get['gid'],'pid'=>$get['pid'])));
         }
         $weeks =array('日','一','二','三','四','五','六');
         $w = date('w',strtotime($date['yuyue_date']));
@@ -429,34 +367,46 @@ class IndexAction extends Action {
         $place = $sm->where($where)->find();
         $this->assign('place',$place);
         
-        
-        //dump($goods);die;
+
+        $data = $this->timeJudge($get['gid'], $time['date_id'], $get['tpid'], 2);
+        if (0 != $data['code']) {
+            $this->error($data['message'], U('Index/selectdate',array('gid' => $get['gid'],'pid' => $get['pid'])));
+        }
+
         $this->assign('gid',$get['gid']);
         $this->assign('pid',$get['pid']);
         $this->assign('tpid',$get['tpid']);
+        $this->assign('serviceTime', $goods['time_type'] * 0.5);
+        $this->assign('serviceTimes', $data['data']['date']);
         $this->assign('url',U("Index/selecttime",array('gid'=>$get['gid'],'pid'=>$get['pid'],'date_id'=>$time['date_id'])));
         
         $this->display('order');
     }
 
     public  function checkout(){
-    
+
         $get = $_POST;
-        if(!$get['gid']){
-            
+        if(empty($get['gid'])){
             $this->error('请选择产品！',U('Index/store'));
         }
         
-        if(!$get['pid']){
+        if(empty($get['pid'])){
             
             $this->error('请选择门店！',U('Index/store'));
         }
         
-        if(!$get['tpid']){
+        if(empty($get['tpid'])){
             
             $this->error('请选择日期！',U('Index/selectdate',array('gid'=>$get['gid'],'pid'=>$get['pid'])));
         }
-        
+
+        if(empty($get['name'])){
+            $this->error('请填写预约的姓名！',U('Index/order',array('gid'=>$get['gid'],'pid'=>$get['pid'],'tpid'=>$get['tpid'])));
+        }
+        if(empty($get['phone'])){
+            $this->error('请填写预约的手机号码！',U('Index/order',array('gid'=>$get['gid'],'pid'=>$get['pid'],'tpid'=>$get['tpid'])));
+        }
+
         $yyt = D('Admin/YuyueTime');
         $yyd = D('Admin/YuyueDate');
         $yyo = D('Admin/YuyueOrders');
@@ -474,25 +424,24 @@ class IndexAction extends Action {
         }
         $order['tp_id'] = (int)$get['tpid'];
         
-        $goods = $article->where('id='.$get['gid'])->find();
+        $goods = $article->where('id='. $get['gid'])->find();
         if(empty($goods)){
             
             $this->error('当前产品不存在，请重选产品！',U('Index/city'));
         }
+
+        $data = $this->timeJudge($get['gid'], $time['date_id'], $get['tpid'], 2);
+        if (0 != $data['code']) {
+            $this->error($data['msg'], U('Index/city'));
+        }
+        $tpIds = $data['data']['tpids'];
+
         $order['goods_id'] = $get['gid'];
         //$order['price'] = round($goods['price']*0.3,2);
         $order['price'] = round($goods['price'],2);
         $order['pay_price'] = round($goods['pay_price'],2);
         //门店信息
         $order['place_id'] = $get['pid'];
-        
-        if(!$get['name']){
-            $this->error('请填写预约的姓名！',U('Index/order',array('gid'=>$get['gid'],'pid'=>$get['pid'],'tpid'=>$get['tpid'])));   
-        }
-        if(!$get['phone']){
-            $this->error('请填写预约的手机号码！',U('Index/order',array('gid'=>$get['gid'],'pid'=>$get['pid'],'tpid'=>$get['tpid']))); 
-        }
-        
         
         //顾客信息
         $order['name'] = replaceSpecialChar($get['name']);
@@ -512,34 +461,37 @@ class IndexAction extends Action {
         //dump($order);die;
         
         if($re){
-            //扣库存
-            $arr['time_store'] = $time['time_store']-1;
-            $arr['id'] = $get['tpid'];
-            //加日志
-            $log_name = 'time_store.log';//log文件路径
-            $log_time_store = $time['time_store'];//扣库存前的总数
-            $log_time_store1 = $time['time_store']-1;//扣库存后的总数
-            $log_openid = $this->openid;//用户openid
-            $log_orderid = $order['order_id'];//订单id
-            $res = $yyt->save($arr);
-            if($res){
-                $this->log_result($log_name,"【start】:\n"."-----------------------------------"."\n");
-                $this->log_result($log_name,"【扣库存前的总数】:\n".$log_time_store."\n");
-                $this->log_result($log_name,"【扣库存后的总数】:\n".$log_time_store1."\n");
-                $this->log_result($log_name,"【用户openid】:\n".$log_openid."\n");
-                $this->log_result($log_name,"【订单id】:\n".$log_orderid."\n");
-                $this->log_result($log_name,"【end】:\n"."-----------------------------------"."\n");
-                $yyo->commit();
-            }else{
-                $this->log_result($log_name,"【###start】:\n"."-----------------------------------"."\n");
-                $this->log_result($log_name,"【###扣库存前的总数】:\n".$log_time_store."\n");
-                $this->log_result($log_name,"【###保存数据失败】:\n".$res."\n");
-                $this->log_result($log_name,"【###订单id】:\n".$log_orderid."\n");
-                $this->log_result($log_name,"【###end】:\n"."-----------------------------------"."\n");
-                $yyo->rollback();
-                $this->error('订单保存失败1',U('Index/selectdate',array('gid'=>$get['gid'],'pid'=>$get['pid'])));
+            foreach ($tpIds as $tpid) {
+                //扣库存
+                $time  = $yyt->where('id=' . (int) $tpid)->find();
+                $arr['time_store'] = $time['time_store'] - 1;
+                $arr['id'] =  $tpid;
+                //加日志
+                $log_name = 'time_store.log';//log文件路径
+                $log_time_store = $time['time_store'];//扣库存前的总数
+                $log_time_store1 = $time['time_store']-1;//扣库存后的总数
+                $log_openid = $this->openid;//用户openid
+                $log_orderid = $order['order_id'];//订单id
+                $res = $yyt->save($arr);
+                if($res){
+                    $this->log_result($log_name,"【start】:\n"."-----------------------------------"."\n");
+                    $this->log_result($log_name,"【扣库存前的总数】:\n".$log_time_store."\n");
+                    $this->log_result($log_name,"【扣库存后的总数】:\n".$log_time_store1."\n");
+                    $this->log_result($log_name,"【用户openid】:\n".$log_openid."\n");
+                    $this->log_result($log_name,"【订单id】:\n".$log_orderid."\n");
+                    $this->log_result($log_name,"【end】:\n"."-----------------------------------"."\n");
+                }else{
+                    $this->log_result($log_name,"【###start】:\n"."-----------------------------------"."\n");
+                    $this->log_result($log_name,"【###扣库存前的总数】:\n".$log_time_store."\n");
+                    $this->log_result($log_name,"【###保存数据失败】:\n".$res."\n");
+                    $this->log_result($log_name,"【###订单id】:\n".$log_orderid."\n");
+                    $this->log_result($log_name,"【###end】:\n"."-----------------------------------"."\n");
+                    $yyo->rollback();
+                    $this->error('订单保存失败1',U('Index/selectdate',array('gid'=>$get['gid'],'pid'=>$get['pid'])));
+                }
             }
-            
+
+            $yyo->commit();
         }else{
                 $this->log_result($log_name,"【@@@start】:\n"."-----------------------------------"."\n");
                 $this->log_result($log_name,"【@@@扣库存前的总数】:\n".$log_time_store."\n");
@@ -549,7 +501,7 @@ class IndexAction extends Action {
             $yyo->rollback();
             $this->error('订单保存失败2',U('Index/selectdate',array('gid'=>$get['gid'],'pid'=>$get['pid'])));
         }
-        
+
         //$_SESSION['pay_price']  = $order['price'];
         $this->success('预约成功，请及时支付定金！',U('Index/orderpay',array('orderid'=>$order['order_id'],'name'=>$order['name'],'area'=>$place['area'],'tel'=>$place['tel'],'time'=>$date['yuyue_date'].'-'.$time['time_point'],'phone'=>$order['tel'],'store'=>$place['name'])));
     }
@@ -827,7 +779,8 @@ class IndexAction extends Action {
     //选择拍摄日期
    
     //选择拍摄时间
-    public function selecttime(){
+    public function selecttime()
+    {
         $get = $_GET;
         if(!$get['gid']){
             
@@ -878,6 +831,17 @@ class IndexAction extends Action {
             }
             
         }
+        $article = D('Admin/Article');
+        $where = array('id' => (int) $get['gid'], 'published'=>'1');
+        $articleData = $article->where($where)->find();
+
+        if (!$articleData) {
+            $this->error('请选择产品！',U('Index/type'));
+        }
+
+        $timeType = isset($articleData['time_type']) ? $articleData['time_type'] : 1;
+
+
         //dump($arr);die;
         //获取门店信息
         $sm = D("Admin/Store");
@@ -885,6 +849,8 @@ class IndexAction extends Action {
         $place = $sm->where($where)->find();
         
         $this->assign('date',$date);
+        $this->assign('timeType', $timeType);
+        $this->assign('date_id', (int) $get['date_id'] );
         $this->assign('week',$week);
         $this->assign('goods_id',$get['gid']);
         $this->assign('place_id',$get['pid']);
@@ -1173,4 +1139,124 @@ class IndexAction extends Action {
         curl_close($ch);
         return $data;
     }
+
+    /**
+     * 判断时间，选择时间
+     *
+     */
+    public function timeJudge($gid, $date_id, $tpid, $type = 1)
+    {
+        $result = array();
+
+        $article = D('Admin/Article');
+        $where = array('id' => (int) $gid, 'published'=>'1');
+        $articleData = $article->where($where)->find();
+
+        if (!$articleData) {
+            $result =  array(
+                'code' => '-1',
+                'data' => array(),
+                'msg' => '请选择正确的产品',
+            );
+            $this->jsonOrArray($result, $type);
+        }
+
+        $timeType = isset($articleData['time_type']) ? $articleData['time_type'] : 1;
+
+        $yyd = D('Admin/YuyueDate');
+        //$yyt = D('Admin/YuyueTime');
+
+
+        $where ='yyd.id=yyt.date_id AND yyt.date_id= ' . $date_id ;
+
+        $arr = $yyd->table('joys_yuyue_date yyd,joys_yuyue_time yyt')->field('yyd.*,yyt.time_store,left(yyt.time_point,5) as time_point,yyt.id as tpid')->where($where)->order('yyt.id asc')->select();
+
+        //$arr = array_combine(array_column($arr, 'tpid'), $arr);
+        //dump($arr);
+        $unitTime = 30 * 60;
+        $minTime = 0;
+        foreach ($arr as $item) {
+            $timePoint = strtotime($item['time_point']);
+
+            if (!$minTime) {
+                $minTime = $timePoint;
+            }
+            if ($minTime && $minTime != $timePoint) {
+                $unitTime =  $timePoint - $minTime;
+                break;
+            }
+        }
+
+        $arr = array_filter(array_map(function($item) use ($tpid) {
+            $timePoint = strtotime($item['time_point']);
+            if ($tpid <= $item['tpid'] && $item['time_store'] > 0) {
+                $item['time_point'] = $timePoint;
+                return $item;
+            }
+        }, $arr));
+
+        //dump($arr);
+        $tmp = array();
+        foreach ($arr as $item) {
+            if (!in_array($item['time_point'], $result)) {
+                $tmp[$item['tpid']] = $item['time_point'];
+            }
+        }
+
+        if (empty($tmp[$tpid])) {
+            $result =  array(
+                'code' => '-1',
+                'data' => array(),
+                'msg' => '当前时间被其他人选择了',
+            );
+            $this->jsonOrArray($result, $type);
+        }
+
+        $selectTime = $tmp[$tpid];
+        $tmpFlip = array_flip($tmp);
+
+        for ($i = 0; $i < $timeType; $i++) {
+            $key = $selectTime + $i * $unitTime;
+
+            if (array_key_exists($key, $tmpFlip)) {
+                $result['tpids'][] = $tmpFlip[$key];
+            } else {
+                $result = array(
+                    'code' => '-1',
+                    'data' => array(),
+                    'msg' => "{$articleData['title']},服务时间不满足，请选择其他时间",
+                );
+                $this->jsonOrArray($result, $type);
+            }
+        }
+
+        $count = count($result['tpids']);
+
+        $result['date'] = $count == 1 ? date('H:i', $tmp[$result['tpids'][0]]) . '-' . date('H:i', $tmp[$result['tpids'][0]] + $unitTime)
+            : date('H:i', $tmp[$result['tpids'][0]]) . '-' . date('H:i', $tmp[$result['tpids'][$count- 1]] + $unitTime);
+        $result['productName'] = $articleData['title'];
+
+
+        $result = array (
+            'code' => '0',
+            'data' => $result,
+            'msg' => 'success',
+        );
+
+        return $this->jsonOrArray($result, $type);
     }
+
+    /**
+     * 返回json 或者 array
+     * @param  array $data
+     * @param int $type
+     * @return  array|void
+     */
+    public function jsonOrArray($data, $type = 1)
+    {
+        if ($type == 1) {
+            echo json_encode($data);exit;
+        }
+        return $data;
+    }
+}

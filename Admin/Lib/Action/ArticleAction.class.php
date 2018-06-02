@@ -81,7 +81,10 @@ class ArticleAction extends CommonAction {
 		//	$order_id = $orders[0]['order_id'];
 		//	$this->error("此产品存在未完成订单".$order_id."，请勿修改",U('Article/index'));	
 		//}
-		
+		if (isset($_POST['time_type']) && $_POST['time_type'] < 1 || $_POST['time_type'] > 16) {
+            $_POST['time_type'] = 1;
+        }
+
 		if(!empty($_FILES['photo']['size'])|| !$_POST['photo']||!empty($_FILES['imga']['size'])|| !$_POST['imga']||!empty($_FILES['imgb']['size'])|| !$_POST['imgb']||!empty($_FILES['imgc']['size'])|| !$_POST['imgc']||!empty($_FILES['imgd']['size'])|| !$_POST['imgd']){
 			$pinfo = $this->upload();	
 		}
@@ -145,7 +148,7 @@ class ArticleAction extends CommonAction {
 	}
 
 	function edit(){
-		$id=$_GET['id'];
+		$id = (int) $_GET['id'];
 		if(!empty($id)){
 			$art=new ArticleModel();
 			$date=$art->getById($id);

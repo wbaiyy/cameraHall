@@ -5,8 +5,71 @@ class IndexAction extends Action {
     
     public function __construct(){
         parent::__construct();
+        $this->key = 'dcd6a713d49fb4432c57f8e20a88a6b1';
+        $this->mch_id = "1342208701";
+        $this->appid = 'wxd79f45dc2114c329';
+        //网易云信分配的账号，请替换你在管理后台应用下申请的Appkey
+        $this->AppKey = 'e573b030f1c51f5892a9d4ac41747423';
+        //网易云信分配的账号，请替换你在管理后台应用下申请的appSecret
+        $this->AppSecret = '9594ee68d5a5';
+        //微信模版消息
+        $this->template_id = '89NAdNmYO--O68Ye5WyraEu0zmMc-F1TrgPEpszH5wE';
 
+        if(!$_SESSION['open_id']){
+            $_SESSION['open_id'] =$this->openid = $this->get_openid($this->appid,$this->key);
+        }else{
+            $this->openid = $_SESSION['open_id'];
+        }
+        //$this->openid = 'os7D9wi5jTzRfe8PApIdL0vAnB0E';
 
+        $openids = $this->openid;
+
+        //var_dump($_GET["_URL_"][1]);exit;
+
+        if($_GET["_URL_"][1]!="scan"){
+
+            $token = S('atoken');
+
+            if(!$token){
+                $token =  $this->getToken();
+
+                S('atoken',$token,3600,'File');
+            }
+            ;
+            $gzxx =  S('gzxx');
+            if(!$gzxx){
+                $res  =$this->getInfo( $token ,$openids);
+
+                if($res['errcode']=="40001"){
+
+                    $token =  $this->getToken();
+                    S('atoken',$token,3600,'File');
+                    $reUrl ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+                    Header("Location: $reUrl");
+
+                }
+
+                if($res['errcode']=='40003'){
+                    $reUrl ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+                    if(strpos($reUrl,'code')){
+                        //$reUrl = str_replace('code','nimeicode',$reUrl);
+                        $arr = explode('?',$reUrl);
+                        Header("Location: $arr[0]");
+                        //Header("Location: $reUrl");
+                    }
+                }
+                $gzxx = $res['subscribe'];
+
+                if($gzxx!=0){
+                    S('gzxx',$gzxx,3600,'File');
+                }
+            }
+
+            //var_dump($token);die;
+            if($gzxx == 0){
+                $this->error('您还未关注我们！', U("Index/scan"));
+            }
+        }
 }
     
     function getToken(){
@@ -63,14 +126,14 @@ class IndexAction extends Action {
         $city = D('Admin/city');
         $store = D('Admin/store');
         $city1 = $city->where(array('published'=>1))->select();
-        
+
         if(empty($_GET['id'])){
-             $stores = $store->where(array('published'=>1))->select();
-             $cityname = "城市";
+            $stores = $store->where(array('published'=>1))->order('lid asc')->select();
+            $cityname = "城市";
         }else{
-             $stores = $store->where(array('published'=>1,'cityid'=>$_GET['id']))->select();
-             $city2 = $city->where(array('published'=>1,'id'=>$_GET['id']))->find();
-             $cityname = $city2['name'];
+            $stores = $store->where(array('published'=>1,'cityid'=>$_GET['id']))->order('lid asc')->select();
+            $city2 = $city->where(array('published'=>1,'id'=>$_GET['id']))->find();
+            $cityname = $city2['name'];
         }
 // echo "<pre>";var_dump($cityname);exit;
         $num = count($stores);

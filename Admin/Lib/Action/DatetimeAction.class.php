@@ -234,6 +234,9 @@ class DatetimeAction extends CommonAction
         $keyword = $_POST['keyword'];
         $ftype = $_POST['ftype'];
 
+        $keyword1 = $_GET['keyword'];
+        $ftype1 = $_GET['ftype'];
+
         $sm = new StoreModel();
         if (!empty($keyword) && !empty($ftype)) {
             $place_id = $sm->field('id')->where('name like "%' . $keyword . '%"')->select();
@@ -245,6 +248,18 @@ class DatetimeAction extends CommonAction
             $where = "place_id in (" . implode(',', $arr) . ")";
 
             $this->assign('keyword', $keyword);
+        } else {
+            if (!empty($keyword1) && !empty($ftype1)) {
+                $place_id = $sm->field('id')->where('name like "%' . $keyword1 . '%"')->select();
+                $arr = array();
+                foreach ($place_id as $value) {
+                    $arr[] = $value['id'];
+                }
+
+                $where = "place_id in (" . implode(',', $arr) . ")";
+
+                $this->assign('keyword', $keyword);
+            }
         }
 
         $art = new YuyueDateModel();

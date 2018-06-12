@@ -436,6 +436,7 @@ class IndexAction extends Action {
         }
         $tpIds = $data['data']['tpids'];
 
+        $order['tp_id'] = implode(',', $tpIds);
         $order['goods_id'] = $get['gid'];
         //$order['price'] = round($goods['price']*0.3,2);
         $order['price'] = round($goods['price'],2);
@@ -607,7 +608,8 @@ class IndexAction extends Action {
             //直接取消订单
             if($t>$endt){
                 $yyt = D('Admin/YuyueTime');
-                $tmdata =$yyt->where('id='.$order['tp_id'])->find();
+                //$tmdata =$yyt->where('id='.$order['tp_id'])->find();
+                $tmdata = $yyt->where('id in (' . $order['tp_id'] . ')')->select();
                 
                 //开始事务
                 $yyt->startTrans(); 
@@ -616,10 +618,12 @@ class IndexAction extends Action {
                 $re = $yyo->save(array('id'=>$order['id'],'status'=>'-1'));
                 if($re){
                     //加库存
-                    $arrss1['time_store'] = $tmdata['time_store']+1;
-                    $arrss1['id'] = $order['tp_id'];
-                    $res = $yyt->save($arrss1);
-                        
+                    foreach ($tmdata as $tm) {
+                        $arrss1['time_store'] = $tm['time_store']+1;
+                        $arrss1['id'] = $tm['id'];
+                        $res = $yyt->save($arrss1);
+                    }
+
                     if($res){
                         $yyt->commit();
                     }else{
@@ -999,14 +1003,18 @@ class IndexAction extends Action {
                     $yyt = D('Admin/YuyueTime');
                     //开始事务
                     $yyt->startTrans(); 
-                    $tmdata =$yyt->where('id='.$redata['tp_id'])->find();       
-    
+                    //$tmdata =$yyt->where('id='.$redata['tp_id'])->find();
+                    $tmdata = $yyt->where('id in (' . $redata['tp_id'] . ')')->select();
+
+
                     if($re){
                         //加库存
-                        $arrss1['time_store'] = $tmdata['time_store']+1;
-                        $arrss1['id'] = $redata['tp_id'];
-                        $res = $yyt->save($arrss1);
-                            
+                        foreach ($tmdata as $tm) {
+                            $arrss1['time_store'] = $tm['time_store']+1;
+                            $arrss1['id'] = $tm['id'];
+                            $res = $yyt->save($arrss1);
+                        }
+
                         if($res){
                             $yyt->commit();
                         }else{
